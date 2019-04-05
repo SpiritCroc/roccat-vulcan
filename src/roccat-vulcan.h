@@ -73,5 +73,6 @@ unsigned char rv_repeated_keys[RV_MAX_CONCURRENT_KEYS];
 // FX functions (fx.c)
 int rv_fx_init();
 int rv_fx_impact();
+int rv_fx_piped(char *pipe_name);
 
 #endif

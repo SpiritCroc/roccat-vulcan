@@ -10,6 +10,8 @@
 
 #include "roccat-vulcan.h"
 
+#define PIPE_READ_LENGTH 1024
+
 // Neighbor tables
 unsigned char rv_neigh[RV_NUM_KEYS][RV_MAX_NEIGH] = {
 	0x01, 0x06, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -278,6 +280,75 @@ int rv_fx_impact() {
 
 		// Runs at ~30fps
 		usleep(30000);
+	}
+
+	// Should not be reached
+	return RV_SUCCESS;
+}
+
+int rv_fx_piped(char *pipe_name) {
+	rv_rgb_map *rgb_map;
+	rv_rgb rgb;
+	char *keyname;
+	char buf[PIPE_READ_LENGTH];
+
+	rgb_map = malloc(sizeof(rv_rgb_map));
+	if (!rgb_map) {
+		rv_printf(RV_LOG_NORMAL, "Error: Unable to allocate memory for map\n");
+		return(RV_FAILURE);
+	}
+	memset(rgb_map, 0, sizeof(rv_rgb_map));
+
+	if (rv_init_evdev() != RV_SUCCESS) {
+		rv_printf(RV_LOG_NORMAL, "Error: No event input device found\n");
+		return(RV_FAILURE);
+	}
+
+	rv_printf(RV_LOG_NORMAL, "Reading commands from '%s'\n", pipe_name);
+
+	while (1) {
+		FILE *in = fopen(pipe_name, "r");
+		struct stat in_stat;
+		if (!in) {
+			rv_printf(RV_LOG_NORMAL, "Error: %s\n", strerror(errno));
+			return(RV_FAILURE);
+		}
+		if (fstat(fileno(in), &in_stat)) {
+			rv_printf(RV_LOG_NORMAL, "Error: %s\n", strerror(errno));
+			return(RV_FAILURE);
+		}
+		if (!S_ISFIFO(in_stat.st_mode)) {
+			rv_printf(RV_LOG_NORMAL, "Error: '%s' is not a pipe\n", pipe_name);
+			return(RV_FAILURE);
+		}
+
+		while (fgets(buf, PIPE_READ_LENGTH, in)) {
+			if (sscanf(buf, "%m[^:]:%hd,%hd,%hd", &keyname, &(rgb.r), &(rgb.g), &(rgb.b)) == 4) {
+				if (strncmp("all", keyname, 4) == 0) {
+					for (int i = 0; i < RV_NUM_KEYS; i++) {
+						memcpy(&(rgb_map->key[i]), &rgb, sizeof(rv_rgb));
+					}
+					rv_printf(RV_LOG_NORMAL, "All keys set to fixed color %hd,%hd,%hd\n", rgb.r, rgb.g, rgb.b);
+				}
+				else {
+					int k = rv_get_keycode(keyname);
+					if (k >= 0) {
+						memcpy(&(rgb_map->key[k]), &rgb, sizeof(rv_rgb));
+						rv_printf(RV_LOG_NORMAL, "Key %s set to fixed color %hd,%hd,%hd\n", keyname, rgb.r, rgb.g, rgb.b);
+					}
+					else {
+						rv_printf(RV_LOG_NORMAL, "Error: Unknown key code '%s'\n", keyname);
+					}
+				}
+			}
+			else {
+				rv_printf(RV_LOG_NORMAL, "Error: Unable to parse instruction\n");
+			}
+		}
+
+		rv_send_led_map(rgb_map);
+
+		fclose(in);
 	}
 
 	// Should not be reached
