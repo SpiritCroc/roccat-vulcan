@@ -40,6 +40,17 @@ unsigned char rv_ev2rv[] = {
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
+// Reverse lookup of rv_ev2rv.
+// 0xff = Not found.
+unsigned char rv_rv2ev(unsigned char rv) {
+	for (int i = 0; i <= RV_MAX_EV_CODE; i++) {
+		if (rv_ev2rv[i] == rv) {
+			return i;
+		}
+	}
+	return 0xff;
+}
+
 #define RV_MAX_CMP_CHARS 4
 int cmp_file(char *fpath, char *string) {
 	char data[RV_MAX_CMP_CHARS];

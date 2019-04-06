@@ -9,6 +9,7 @@
 
 #define FX_MODE_IMPACT 0
 #define FX_MODE_PIPED 1
+#define FX_MODE_TEST_LOOP 2
 
 // Globals
 uint16_t rv_products[3]   = { 0x3098, 0x307a,  0x0000 };
@@ -65,6 +66,9 @@ void show_usage(const char *arg0) {
 	rv_printf(RV_LOG_NORMAL, "                     RGB values should be in the effective range of 0..255.\n");
 	rv_printf(RV_LOG_NORMAL, "                     Other command line options do not apply.\n");
 	rv_printf(RV_LOG_NORMAL, "\n");
+	rv_printf(RV_LOG_NORMAL, "-t                 : Colors one key after another, printing evdev constants while doing so.\n");
+	rv_printf(RV_LOG_NORMAL, "                     Other command line options do not apply.\n");
+	rv_printf(RV_LOG_NORMAL, "\n");
 	rv_printf(RV_LOG_NORMAL, "-w [speed]         : Set up 'wave' effect with desired speed (1-11) and quit.\n");
 	rv_printf(RV_LOG_NORMAL, "                     This effect is run by the hardware and does not require\n");
 	rv_printf(RV_LOG_NORMAL, "                     host support. Other command line options do not apply.\n");
@@ -88,7 +92,7 @@ int main(int argc, char* argv[])
 
 	rv_printf(RV_LOG_NORMAL, "ROCCAT Vulcan for Linux [github.com/duncanthrax/roccat-vulcan]\n");
 
-	while ((opt = getopt(argc, argv, "hvw:p:c:k:")) != -1) {
+	while ((opt = getopt(argc, argv, "hvw:p:tc:k:")) != -1) {
 		switch (opt) {
 			case 'h':
 				show_usage(argv[0]);
@@ -147,6 +151,9 @@ int main(int argc, char* argv[])
 				fx_mode = FX_MODE_PIPED;
 				file_name = optarg;
 			break;
+			case 't':
+				fx_mode = FX_MODE_TEST_LOOP;
+			break;
 			default:
 				show_usage(argv[0]);
 		}
@@ -193,6 +200,24 @@ int main(int argc, char* argv[])
 				};
 
 				return rv_fx_piped(file_name);
+			}
+			else if (fx_mode == FX_MODE_TEST_LOOP) {
+				if (rv_open_device() < 0) {
+					rv_printf(RV_LOG_NORMAL, "Error: Unable to find keyboard\n");
+					return RV_FAILURE;
+				}
+
+				if (rv_send_init(RV_MODE_FX, -1)) {
+					rv_printf(RV_LOG_NORMAL, "Error: Failed to send initialization sequence.\n");
+					return RV_FAILURE;
+				}
+
+				if (rv_fx_init() != 0) {
+					rv_printf(RV_LOG_NORMAL, "Error: Failed to initialize LEDs\n");
+					return RV_FAILURE;
+				};
+
+				return rv_fx_test_loop();
 			}
 			else {
 				rv_printf(RV_LOG_NORMAL, "Effect Color Table (change these with -c option)\n");

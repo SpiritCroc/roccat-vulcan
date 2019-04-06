@@ -65,6 +65,7 @@ void rv_printf(int verbose, const char *format, ...);
 int rv_init_evdev();
 int rv_update_evdev();
 int rv_get_keycode();
+unsigned char rv_rv2ev(unsigned char rv);
 unsigned char rv_active_keys[RV_NUM_KEYS];
 unsigned char rv_released_keys[RV_MAX_CONCURRENT_KEYS];
 unsigned char rv_pressed_keys[RV_MAX_CONCURRENT_KEYS];
@@ -74,5 +75,6 @@ unsigned char rv_repeated_keys[RV_MAX_CONCURRENT_KEYS];
 int rv_fx_init();
 int rv_fx_impact();
 int rv_fx_piped(char *pipe_name);
+int rv_fx_test_loop();
 
 #endif

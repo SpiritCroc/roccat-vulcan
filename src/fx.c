@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <libevdev/libevdev.h>
 
 #include "roccat-vulcan.h"
 
@@ -349,6 +350,46 @@ int rv_fx_piped(char *pipe_name) {
 		rv_send_led_map(rgb_map);
 
 		fclose(in);
+	}
+
+	// Should not be reached
+	return RV_SUCCESS;
+}
+
+int rv_fx_test_loop() {
+	rv_rgb_map *rgb_map;
+	rv_rgb rgb_off;
+	rv_rgb rgb_on;
+	int i = 0;
+
+	rgb_map = malloc(sizeof(rv_rgb_map));
+	if (!rgb_map) {
+		rv_printf(RV_LOG_NORMAL, "Error: Unable to allocate memory for map\n");
+		return(RV_FAILURE);
+	}
+	memset(rgb_map, 0, sizeof(rv_rgb_map));
+
+	if (rv_init_evdev() != RV_SUCCESS) {
+		rv_printf(RV_LOG_NORMAL, "Error: No event input device found\n");
+		return(RV_FAILURE);
+	}
+
+	rgb_off.r = 0;
+	rgb_off.g = 0;
+	rgb_off.b = 0;
+
+	rgb_on.r = 255;
+	rgb_on.g = 255;
+	rgb_on.b = 255;
+
+	while (1) {
+		memcpy(&(rgb_map->key[i]), &rgb_on, sizeof(rv_rgb));
+		memcpy(&(rgb_map->key[(RV_NUM_KEYS + i - 1) % RV_NUM_KEYS]), &rgb_off, sizeof(rv_rgb));
+		rv_printf(RV_LOG_NORMAL, "Key %d -> %s\n", i, libevdev_event_code_get_name(EV_KEY, rv_rv2ev(i)));
+		rv_send_led_map(rgb_map);
+		// 1 second
+		usleep(1000000);
+		i = (i + 1) % RV_NUM_KEYS;
 	}
 
 	// Should not be reached
