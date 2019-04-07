@@ -15,8 +15,8 @@ $(NAME): $(obj)
 install:
 	mkdir -p ${DESTDIR}${BINDIR}
 	cp $(NAME) ${DESTDIR}${BINDIR}/
-	mkdir -p ${DESTDIR}${UDEVDIR}
-	cp *.rules ${DESTDIR}${UDEVDIR}/
+	#mkdir -p ${DESTDIR}${UDEVDIR}
+	#cp *.rules ${DESTDIR}${UDEVDIR}/
 
 .PHONY: clean
 clean:
