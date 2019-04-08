@@ -199,8 +199,6 @@ int main(int argc, char* argv[])
 					return RV_FAILURE;
 				};
 
-				rv_close_ctrl_device();
-
 				return rv_fx_piped(file_name);
 			}
 			else if (fx_mode == FX_MODE_TEST_LOOP) {

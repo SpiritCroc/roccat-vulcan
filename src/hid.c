@@ -59,11 +59,6 @@ int rv_open_device() {
 	return -1;
 }
 
-void rv_close_ctrl_device() {
-	rv_printf(RV_LOG_NORMAL, "close");
-	hid_close(ctrl_handle);
-}
-
 int rv_wait_for_ctrl_device() {
 	unsigned char buffer[] = { 0x04, 0x00, 0x00, 0x00 };
 	int res;

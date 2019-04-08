@@ -56,7 +56,6 @@ int rv_get_ctrl_report(unsigned char report_id);
 int rv_set_ctrl_report(unsigned char report_id, int mode, int byteopt);
 int rv_send_led_map(rv_rgb_map *map);
 int rv_send_init(int type, int opt);
-void rv_close_ctrl_device();
 
 // Logging I/O functions (output.c)
 void rv_print_buffer(unsigned char *buffer, int len);
